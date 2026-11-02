@@ -279,6 +279,23 @@ async function run() {
       res.send("BookNook Server is running smoothly!");
     });
 
+    // 404 Route Catch-all
+    app.use((req, res) => {
+      res.status(404).send({
+        success: false,
+        message: `API route ${req.originalUrl} not found`,
+      });
+    });
+
+    // Centralized error handler
+    app.use((err, req, res, next) => {
+      console.error("Centralized Server Error:", err.stack);
+      res.status(err.status || 500).send({
+        success: false,
+        message: err.message || "Internal Server Error",
+      });
+    });
+
     console.log("Successfully connected to MongoDB Atlas!");
   } catch (error) {
     console.error("Database connection failed:", error);
