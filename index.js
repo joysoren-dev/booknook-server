@@ -120,8 +120,19 @@ async function run() {
       }
     });
 
+    // Payload validator for book creation
+    const validateBookPayload = (req, res, next) => {
+      const { title, author, category } = req.body;
+      if (!title || !author || !category) {
+        return res.status(400).send({
+          message: "Title, author, and category are required fields.",
+        });
+      }
+      next();
+    };
+
     // 3. POST /books - Add Book (Private)
-    app.post("/books", verifyToken, async (req, res) => {
+    app.post("/books", verifyToken, validateBookPayload, async (req, res) => {
       try {
         const bookData = req.body;
         bookData.totalCopies = parseInt(bookData.totalCopies) || 1;
