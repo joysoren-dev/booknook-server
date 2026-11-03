@@ -6,9 +6,9 @@ Backend RESTful API service for **BookNook**, powering authentication, book cata
 
 ## 🌐 Connected Repositories & Live App
 
-- **Live Client URL:** [https://booknook-client-git-main-joysoren4-3057.vercel.app/](https://booknook-client-git-main-joysoren4-3057.vercel.app/)
-- **Client Repository:** [https://github.com/joysoren-dev/booknook-client](https://github.com/joysoren-dev/booknook-client)
-- **Server Repository:** [https://github.com/joysoren-dev/booknook-server](https://github.com/joysoren-dev/booknook-server)
+- **Live Client URL:** https://booknook-client-gamma.vercel.app/
+- **Client Repository:** https://github.com/joysoren-dev/booknook-client
+- **Server Repository:** https://github.com/joysoren-dev/booknook-server
 
 ---
 
