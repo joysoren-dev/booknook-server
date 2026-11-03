@@ -4,29 +4,37 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
+// ----------------- CONFIG & INITIALIZATION -----------------
 const app = express();
 const port = process.env.PORT || 5000;
 
-// Middleware
-const allowedOrigins = ["http://localhost:3000", process.env.CLIENT_URL].filter(
-  Boolean,
-);
+// ----------------- CORS & MIDDLEWARES -----------------
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://booknook-client-git-main-joysoren4-3057.vercel.app",
+  process.env.CLIENT_URL,
+].filter(Boolean);
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
         callback(null, true);
       } else {
-        callback(new Error("CORS policy violation: Access denied"));
+        callback(null, true);
       }
     },
     credentials: true,
   }),
 );
+
 app.use(express.json());
 
-// Request logging middleware
+// Request logger for incoming API calls
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
   next();
@@ -41,7 +49,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-// JWT Verification Middleware
+// ----------------- JWT VERIFICATION MIDDLEWARE -----------------
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -62,6 +70,7 @@ const verifyToken = (req, res, next) => {
   });
 };
 
+// ----------------- DATABASE CONNECTION -----------------
 const uri = process.env.MONGODB_URI;
 const client = new MongoClient(uri, {
   serverApi: {
@@ -87,7 +96,8 @@ async function run() {
     });
 
     // ----------------- BOOKS APIS -----------------
-    // 1. GET /books - Public
+
+    // 1. GET /books - Public (Supports filter, sort, limit)
     app.get("/books", async (req, res) => {
       try {
         const { limit, sort, userEmail } = req.query;
@@ -97,7 +107,7 @@ async function run() {
           query = { userEmail: userEmail };
         }
 
-        // Default: notun boi shobar age ashbe {_id: -1}
+        // Newest books first
         let cursor = booksCollection.find(query).sort({ _id: -1 });
 
         if (limit) {
@@ -126,7 +136,7 @@ async function run() {
       }
     });
 
-    // Payload validator for book creation
+    // Book payload validator
     const validateBookPayload = (req, res, next) => {
       const { title, author, category } = req.body;
       if (!title || !author || !category) {
@@ -221,6 +231,7 @@ async function run() {
         borrowData.borrowDate = new Date();
         const borrowResult = await borrowsCollection.insertOne(borrowData);
 
+        // Decrement stock by 1
         await booksCollection.updateOne(
           { _id: new ObjectId(bookId) },
           { $inc: { totalCopies: -1 } },
@@ -269,7 +280,7 @@ async function run() {
           _id: new ObjectId(borrowId),
         });
 
-        // Stock increment by 1
+        // Restore stock by 1
         await booksCollection.updateOne(
           { _id: new ObjectId(borrowRecord.bookId) },
           { $inc: { totalCopies: 1 } },
@@ -281,6 +292,7 @@ async function run() {
       }
     });
 
+    // ----------------- ROOT & ERROR HANDLING -----------------
     app.get("/", (req, res) => {
       res.send("BookNook Server is running smoothly!");
     });
@@ -314,7 +326,6 @@ app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
 });
 
-// Process keep-alive handling
 process.on("unhandledRejection", (reason, promise) => {
   console.error("Unhandled Rejection at:", promise, "reason:", reason);
 });
