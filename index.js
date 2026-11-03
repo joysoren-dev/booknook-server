@@ -87,7 +87,6 @@ async function run() {
     });
 
     // ----------------- BOOKS APIS -----------------
-
     // 1. GET /books - Public
     app.get("/books", async (req, res) => {
       try {
@@ -98,11 +97,8 @@ async function run() {
           query = { userEmail: userEmail };
         }
 
-        let cursor = booksCollection.find(query);
-
-        if (sort === "newest") {
-          cursor = cursor.sort({ createdAt: -1 });
-        }
+        // Default: notun boi shobar age ashbe {_id: -1}
+        let cursor = booksCollection.find(query).sort({ _id: -1 });
 
         if (limit) {
           cursor = cursor.limit(parseInt(limit));
